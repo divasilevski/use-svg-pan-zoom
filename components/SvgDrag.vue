@@ -110,5 +110,3 @@ onUnmounted(() => {
   params.svgElement?.removeEventListener("mousedown", onMousedown);
 });
 </script>
-
-<style scoped />
