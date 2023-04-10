@@ -26,5 +26,6 @@
   height: 100%;
   border: 1px solid black;
   cursor: grab;
+  touch-action: none;
 }
 </style>

@@ -11,6 +11,7 @@ interface Params {
   svgPoint: null | SVGPoint;
   offset: Record<"x" | "y", number>;
   attrs: Record<"x" | "y", number>;
+  pointerId: null | number;
 }
 
 const containerRef = ref();
@@ -21,6 +22,7 @@ const params: Params = {
   svgPoint: null,
   offset: { x: 0, y: 0 },
   attrs: { x: 0, y: 0 },
+  pointerId: null,
 };
 
 const updateAttributes = (x: number, y: number) => {
@@ -32,44 +34,42 @@ const updateAttributes = (x: number, y: number) => {
   params.svgChild.setAttribute("y", `${y}`);
 };
 
-const onMousedown = (event: MouseEvent) => {
-  if (!params.svgElement || !params.svgPoint) return;
-
-  event.preventDefault();
+const getStartPoint = (event: PointerEvent) => {
+  if (!params.svgPoint) return { x: 0, y: 0 };
 
   params.svgPoint.x = event.clientX;
   params.svgPoint.y = event.clientY;
+
   const matrix = params.svgElement?.getScreenCTM()?.inverse();
-  params.svgPoint = params.svgPoint.matrixTransform(matrix);
+  return params.svgPoint.matrixTransform(matrix);
+};
+
+const onStart = (event: PointerEvent) => {
+  params.pointerId = event.pointerId;
+  const startPoint = getStartPoint(event);
 
   params.offset = {
-    x: params.svgPoint.x - params.attrs.x,
-    y: params.svgPoint.y - params.attrs.y,
+    x: startPoint.x - params.attrs.x,
+    y: startPoint.y - params.attrs.y,
   };
 
-  const mousemove = (event: MouseEvent) => {
-    if (!params.svgElement || !params.svgPoint) return;
+  const onMove = (event: PointerEvent) => {
+    if (event.pointerId !== params.pointerId) return;
 
-    event.preventDefault();
-
-    params.svgPoint.x = event.clientX;
-    params.svgPoint.y = event.clientY;
-    const matrix = params.svgElement?.getScreenCTM()?.inverse();
-    const startPoint = params.svgPoint.matrixTransform(matrix);
-
+    const startPoint = getStartPoint(event);
     const x = startPoint.x - params.offset.x;
     const y = startPoint.y - params.offset.y;
 
     updateAttributes(x, y);
   };
 
-  const mouseup = () => {
-    document.removeEventListener("mousemove", mousemove);
-    document.removeEventListener("mouseup", mouseup);
+  const onEnd = () => {
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerup", onEnd);
   };
 
-  document.addEventListener("mousemove", mousemove);
-  document.addEventListener("mouseup", mouseup);
+  document.addEventListener("pointermove", onMove, { passive: true });
+  document.addEventListener("pointerup", onEnd, { passive: true });
 };
 
 const appendNode = (parent: SVGSVGElement) => {
@@ -103,10 +103,12 @@ const initParams = () => {
 
 onMounted(() => {
   initParams();
-  params.svgElement?.addEventListener("mousedown", onMousedown);
+  params.svgElement?.addEventListener("pointerdown", onStart, {
+    passive: true,
+  });
 });
 
 onUnmounted(() => {
-  params.svgElement?.removeEventListener("mousedown", onMousedown);
+  params.svgElement?.removeEventListener("pointerdown", onStart);
 });
 </script>
