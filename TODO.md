@@ -6,7 +6,6 @@ Project Description
 
 ### Todo
 
-- [ ] Max and min for scale  
 - [ ] isOnlyPan flag  
 - [ ] Wheel plus button for rotation  
 
@@ -15,6 +14,7 @@ Project Description
 
 ### Done ✓
 
+- [x] Max and min for scale  
 - [x] Wheel event  
 - [x] Mouse events  
 - [x] Reset function  

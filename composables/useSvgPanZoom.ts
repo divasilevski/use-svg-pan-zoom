@@ -2,6 +2,8 @@ const SCALE_FACTOR = 1.1
 
 interface Props {
   isRotatable?: boolean
+  maxScale?: number
+  minScale?: number
 }
 
 interface Point {
@@ -141,7 +143,9 @@ function getMatrix({ one, two, newOne, newTwo }: MatrixProps) {
   return new DOMMatrix([d * c, d * s, -d * s, d * c, tx, ty])
 }
 
-export default function ({ isRotatable }: Props = {}) {
+export default function (props: Props = {}) {
+  const { isRotatable, maxScale, minScale } = props
+
   const svgRef = ref<Element>()
   const groupRef = ref<SVGGElement>()
   const matrix = ref<DOMMatrix>()
@@ -152,6 +156,18 @@ export default function ({ isRotatable }: Props = {}) {
   const updateHelpers = (svgElement: SVGSVGElement) => {
     helpers.svgPoint = svgElement.createSVGPoint()
     helpers.svgMatrix = svgElement.getScreenCTM()?.inverse()
+  }
+
+  function checkMaxMinScale(matrix: DOMMatrix) {
+    if (maxScale !== undefined || minScale !== undefined) {
+      const matrixScale = Math.sqrt(matrix.a ** 2 + matrix.c ** 2)
+
+      const isMaxLimit = maxScale && matrixScale > maxScale
+      const isMinLimit = minScale && matrixScale < minScale
+
+      if (isMaxLimit || isMinLimit) return false
+    }
+    return true
   }
 
   const onSingleTouch = (event: TouchEvent) => {
@@ -165,9 +181,9 @@ export default function ({ isRotatable }: Props = {}) {
       if (isSingleTouch) {
         const newTouch = getTouchCoords(event.touches[0])
         const newPoint = convertPoint(newTouch, helpers)
-        const newMatrix = getTranslateMatrix(point, newPoint)
+        const localMatrix = getTranslateMatrix(point, newPoint)
 
-        matrix.value = newMatrix.multiply(initialMatrix)
+        matrix.value = localMatrix.multiply(initialMatrix)
       }
     }
 
@@ -193,11 +209,15 @@ export default function ({ isRotatable }: Props = {}) {
         newTwo: getTouchCoords(event.touches[1]),
       }
 
-      const newMatrix = isRotatable
+      const localMatrix = isRotatable
         ? getMatrix(matrixParams)
         : getZoomMatrix(matrixParams)
 
-      matrix.value = newMatrix.multiply(initialState.matrix)
+      const newMatrix = localMatrix.multiply(initialState.matrix)
+
+      if (checkMaxMinScale(newMatrix)) {
+        matrix.value = newMatrix
+      }
     }
 
     setTouchMove(onTouchMove, () => {
@@ -220,9 +240,9 @@ export default function ({ isRotatable }: Props = {}) {
 
       const newTouch = getMouseCoords(event)
       const newPoint = convertPoint(newTouch, helpers)
-      const newMatrix = getTranslateMatrix(point, newPoint)
+      const localMatrix = getTranslateMatrix(point, newPoint)
 
-      matrix.value = newMatrix.multiply(initialMatrix)
+      matrix.value = localMatrix.multiply(initialMatrix)
     }
 
     setMouseMove(onMouseMove)
@@ -235,9 +255,12 @@ export default function ({ isRotatable }: Props = {}) {
 
     const mousePoint = getWheelCoords(event)
     const point = convertPoint(mousePoint, helpers)
-    const newMatrix = getScaleMatrix(point, scaleDelta)
+    const localMatrix = getScaleMatrix(point, scaleDelta)
+    const newMatrix = localMatrix.multiply(matrix.value)
 
-    matrix.value = newMatrix.multiply(matrix.value)
+    if (checkMaxMinScale(newMatrix)) {
+      matrix.value = newMatrix
+    }
   }
 
   const onResize = debounce(() => {
@@ -279,7 +302,7 @@ export default function ({ isRotatable }: Props = {}) {
       const { a, c } = matrix.value
       return Math.sqrt(a * a + c * c)
     }
-    return 0
+    return 1
   })
 
   const reset = () => {
