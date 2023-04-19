@@ -15,18 +15,28 @@ interface MatrixProps {
   newTwo: Point
 }
 
+interface Helpers {
+  svgPoint?: DOMPoint
+  svgMatrix?: DOMMatrix
+}
+
 function isSvgElement(el?: Element): el is SVGSVGElement {
   return !!el && el.nodeName === 'svg'
 }
 
 // -- Element Helpers --
 
-function setTouchMove(onTouchMove: (event: TouchEvent) => void) {
+function setTouchMove(
+  onTouchMove: (event: TouchEvent) => void,
+  onEnd?: () => void
+) {
   const onTouchEnd = (event: TouchEvent) => {
     event.preventDefault()
 
     document.removeEventListener('touchmove', onTouchMove)
     document.removeEventListener('touchend', onTouchEnd)
+
+    onEnd?.()
   }
 
   document.addEventListener('touchmove', onTouchMove)
@@ -43,10 +53,13 @@ function addGroupElement(parent: SVGSVGElement): SVGGElement {
   return group
 }
 
-function getCurrentMatrix(el: SVGGElement): DOMMatrix {
-  const parent = el.parentNode as SVGSVGElement
-  const childMatrix = el.getScreenCTM()!
-  return parent.getScreenCTM()?.inverse().multiply(childMatrix)!
+function convertPoint(point: Point, helpers: Helpers): Point {
+  if (helpers.svgPoint && helpers.svgMatrix) {
+    helpers.svgPoint.x = point.x
+    helpers.svgPoint.y = point.y
+    return helpers.svgPoint.matrixTransform(helpers.svgMatrix)
+  }
+  return { x: 0, y: 0 }
 }
 
 function updateMatrix(el: SVGGElement, matrix: DOMMatrix) {
@@ -56,6 +69,10 @@ function updateMatrix(el: SVGGElement, matrix: DOMMatrix) {
 // -- Transform Maths --
 function getTouchCoords(touch: TouchList[0]) {
   return { x: touch?.pageX || 0, y: touch?.pageY || 0 }
+}
+
+function getTranslateMatrix(point: Point, newPoint: Point) {
+  return new DOMMatrix().translate(newPoint.x - point.x, newPoint.y - point.y)
 }
 
 function getDistance(pointOne: Point, pointTwo: Point) {
@@ -98,19 +115,41 @@ export default function ({ isRotatable }: Props = {}) {
   const groupRef = ref<SVGGElement>()
   const matrix = ref<DOMMatrix>()
 
+  const helpers: Helpers = {}
+  let isSingleTouch = true
+
+  const initHelpers = (svgElement: SVGSVGElement) => {
+    helpers.svgPoint = svgElement.createSVGPoint()
+    helpers.svgMatrix = svgElement.getScreenCTM()?.inverse()
+  }
+
   const onSingleTouch = (event: TouchEvent) => {
+    const initialMatrix = matrix.value
+    const touch = getTouchCoords(event.touches[0])
+    const point = convertPoint(touch, helpers)
+
     const onTouchMove = (event: TouchEvent) => {
       event.preventDefault()
+
+      if (isSingleTouch) {
+        const newTouch = getTouchCoords(event.touches[0])
+        const newPoint = convertPoint(newTouch, helpers)
+        const newMatrix = getTranslateMatrix(point, newPoint)
+
+        matrix.value = newMatrix.multiply(initialMatrix)
+      }
     }
 
     setTouchMove(onTouchMove)
   }
 
   const onDoubleTouch = (event: TouchEvent) => {
+    isSingleTouch = false
+
     const initialState = {
       touchOne: getTouchCoords(event.touches[0]),
       touchTwo: getTouchCoords(event.touches[1]),
-      matrix: getCurrentMatrix(groupRef.value!),
+      matrix: matrix.value,
     }
 
     const onTouchMove = (event: TouchEvent) => {
@@ -130,7 +169,9 @@ export default function ({ isRotatable }: Props = {}) {
       matrix.value = newMatrix.multiply(initialState.matrix)
     }
 
-    setTouchMove(onTouchMove)
+    setTouchMove(onTouchMove, () => {
+      isSingleTouch = true
+    })
   }
 
   const onTouchStart = (event: TouchEvent) => {
@@ -171,6 +212,7 @@ export default function ({ isRotatable }: Props = {}) {
   onMounted(() => {
     if (isSvgElement(svgRef.value)) {
       groupRef.value = addGroupElement(svgRef.value)
+      initHelpers(svgRef.value)
       addListeners(svgRef.value)
     } else {
       console.warn('Please connect svgRef correctly')
