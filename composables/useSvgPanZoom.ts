@@ -57,6 +57,10 @@ function setMouseMove(onMouseMove: (event: MouseEvent) => void) {
   document.addEventListener('mouseup', onMouseUp)
 }
 
+function disableTouchAction(element: SVGSVGElement) {
+  element.style.touchAction = 'none'
+}
+
 function addGroupElement(parent: SVGSVGElement): SVGGElement {
   const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
@@ -250,6 +254,8 @@ export default function (props: Props = {}) {
   }
 
   const onWheel = (event: WheelEvent) => {
+    event.preventDefault()
+
     const delta = event.deltaY || event.detail || 0
     const normalized = delta % 3 ? delta * 10 : delta / 3
     const scaleDelta = normalized > 0 ? 1 / SCALE_FACTOR : SCALE_FACTOR
@@ -273,7 +279,7 @@ export default function (props: Props = {}) {
   const addListeners = (el: SVGSVGElement) => {
     el.addEventListener('touchstart', onTouchStart, { passive: true })
     el.addEventListener('mousedown', onMouseDown, { passive: true })
-    !isOnlyPan && el.addEventListener('wheel', onWheel, { passive: true })
+    !isOnlyPan && el.addEventListener('wheel', onWheel)
     window.addEventListener('resize', onResize, { passive: true })
   }
 
@@ -313,6 +319,7 @@ export default function (props: Props = {}) {
   onMounted(() => {
     if (isSvgElement(svgRef.value)) {
       groupRef.value = addGroupElement(svgRef.value)
+      disableTouchAction(svgRef.value)
       updateHelpers(svgRef.value)
       addListeners(svgRef.value)
     } else {
