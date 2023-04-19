@@ -6,18 +6,18 @@ Project Description
 
 ### Todo
 
-- [ ] Reset function  
+- [ ] Mouse events  
+- [ ] Wheel events  
 - [ ] Max and min for scale  
 - [ ] isOnlyPan flag  
 - [ ] Wheel plus button for rotation  
-- [ ] Mouse events  
-- [ ] Wheel events  
 
 ### In Progress
 
 
 ### Done ✓
 
+- [x] Reset function  
 - [x] Need recalculate helpers when svg change size  
 - [x] Touch events  
 

@@ -1399,11 +1399,11 @@
     </g>
   </svg>
   <div style="position: absolute; white-space: nowrap">
-    {{ angle }} {{ scale }}
+    {{ angle }} {{ scale }} <button @click="reset">reset</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import useSvgPanZoom from '~/composables/useSvgPanZoom'
-const { svgRef, angle, scale } = useSvgPanZoom({ isRotatable: true })
+const { svgRef, reset, angle, scale } = useSvgPanZoom({ isRotatable: true })
 </script>

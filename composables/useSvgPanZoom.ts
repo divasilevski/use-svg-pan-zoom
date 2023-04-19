@@ -227,6 +227,10 @@ export default function ({ isRotatable }: Props = {}) {
     return 0
   })
 
+  const reset = () => {
+    matrix.value = new DOMMatrix()
+  }
+
   onMounted(() => {
     if (isSvgElement(svgRef.value)) {
       groupRef.value = addGroupElement(svgRef.value)
@@ -243,5 +247,5 @@ export default function ({ isRotatable }: Props = {}) {
     }
   })
 
-  return { svgRef, angle, scale }
+  return { svgRef, reset, angle, scale }
 }
