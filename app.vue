@@ -1,12 +1,10 @@
 <template>
   <div class="wrapper">
-    <SvgDrag>
-      <SvgZoom>
-        <SvgExample />
-      </SvgZoom>
-    </SvgDrag>
+    <SvgExample />
   </div>
 </template>
+
+<script lang="ts" setup></script>
 
 <style>
 * {
@@ -18,7 +16,7 @@
 .wrapper {
   overflow: hidden;
   width: 100%;
-  height: 100vh;
+  height: 90vh;
 }
 
 .wrapper svg {

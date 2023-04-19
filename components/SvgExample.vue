@@ -1,5 +1,6 @@
 <template>
   <svg
+    ref="svgRef"
     version="1.0"
     xmlns="http://www.w3.org/2000/svg"
     width="900.000000pt"
@@ -1397,4 +1398,12 @@
       ></path>
     </g>
   </svg>
+  <div style="position: absolute; white-space: nowrap">
+    {{ angle }} {{ scale }}
+  </div>
 </template>
+
+<script setup lang="ts">
+import useSvgPanZoom from '~/composables/useSvgPanZoom'
+const { svgRef, angle, scale } = useSvgPanZoom({ isRotatable: true })
+</script>
