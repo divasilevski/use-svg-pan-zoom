@@ -6,7 +6,6 @@ Project Description
 
 ### Todo
 
-- [ ] Wheel events  
 - [ ] Max and min for scale  
 - [ ] isOnlyPan flag  
 - [ ] Wheel plus button for rotation  
@@ -16,6 +15,7 @@ Project Description
 
 ### Done ✓
 
+- [x] Wheel event  
 - [x] Mouse events  
 - [x] Reset function  
 - [x] Need recalculate helpers when svg change size  

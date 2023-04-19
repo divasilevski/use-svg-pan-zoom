@@ -1,4 +1,5 @@
-// -- Types --
+const SCALE_FACTOR = 1.1
+
 interface Props {
   isRotatable?: boolean
 }
@@ -23,8 +24,6 @@ interface Helpers {
 function isSvgElement(el?: Element): el is SVGSVGElement {
   return !!el && el.nodeName === 'svg'
 }
-
-// -- Element Helpers --
 
 function setTouchMove(
   onTouchMove: (event: TouchEvent) => void,
@@ -78,7 +77,6 @@ function updateMatrix(el: SVGGElement, matrix: DOMMatrix) {
   el.setAttribute('transform', matrix.toString())
 }
 
-// -- Maths --
 function debounce(cb: Function, wait = 100) {
   let timeout = 0
   let callable = (...args: any) => {
@@ -96,8 +94,18 @@ function getMouseCoords(event: MouseEvent) {
   return { x: event.pageX || 0, y: event.pageY || 0 }
 }
 
+function getWheelCoords(event: WheelEvent) {
+  return { x: event.pageX || 0, y: event.pageY || 0 }
+}
+
 function getTranslateMatrix(point: Point, newPoint: Point) {
   return new DOMMatrix().translate(newPoint.x - point.x, newPoint.y - point.y)
+}
+
+function getScaleMatrix(point: Point, scaleDelta: number) {
+  return new DOMMatrix()
+    .translate(point.x * (1 - scaleDelta), point.y * (1 - scaleDelta))
+    .scale(scaleDelta)
 }
 
 function getDistance(pointOne: Point, pointTwo: Point) {
@@ -132,8 +140,6 @@ function getMatrix({ one, two, newOne, newTwo }: MatrixProps) {
 
   return new DOMMatrix([d * c, d * s, -d * s, d * c, tx, ty])
 }
-
-// -- Hook --
 
 export default function ({ isRotatable }: Props = {}) {
   const svgRef = ref<Element>()
@@ -222,6 +228,18 @@ export default function ({ isRotatable }: Props = {}) {
     setMouseMove(onMouseMove)
   }
 
+  const onWheel = (event: WheelEvent) => {
+    const delta = event.deltaY || event.detail || 0
+    const normalized = delta % 3 ? delta * 10 : delta / 3
+    const scaleDelta = normalized > 0 ? 1 / SCALE_FACTOR : SCALE_FACTOR
+
+    const mousePoint = getWheelCoords(event)
+    const point = convertPoint(mousePoint, helpers)
+    const newMatrix = getScaleMatrix(point, scaleDelta)
+
+    matrix.value = newMatrix.multiply(matrix.value)
+  }
+
   const onResize = debounce(() => {
     if (isSvgElement(svgRef.value)) {
       updateHelpers(svgRef.value)
@@ -231,12 +249,14 @@ export default function ({ isRotatable }: Props = {}) {
   const addListeners = (el: SVGSVGElement) => {
     el.addEventListener('touchstart', onTouchStart, { passive: true })
     el.addEventListener('mousedown', onMouseDown, { passive: true })
+    el.addEventListener('wheel', onWheel, { passive: true })
     window.addEventListener('resize', onResize, { passive: true })
   }
 
   const removeListeners = (el: SVGSVGElement) => {
     el.removeEventListener('touchstart', onTouchStart)
     el.removeEventListener('mousedown', onMouseDown)
+    el.removeEventListener('wheel', onWheel)
     window.removeEventListener('resize', onResize)
   }
 
