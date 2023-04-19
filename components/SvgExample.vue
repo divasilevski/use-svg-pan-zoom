@@ -1406,7 +1406,8 @@
 <script setup lang="ts">
 import useSvgPanZoom from '~/composables/useSvgPanZoom'
 const { svgRef, reset, angle, scale } = useSvgPanZoom({
-  isRotatable: true,
+  isRotatable: false,
+  isOnlyPan: false,
   maxScale: 2.0,
   minScale: 0.5,
 })

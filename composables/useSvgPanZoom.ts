@@ -2,6 +2,7 @@ const SCALE_FACTOR = 1.1
 
 interface Props {
   isRotatable?: boolean
+  isOnlyPan?: boolean
   maxScale?: number
   minScale?: number
 }
@@ -144,7 +145,7 @@ function getMatrix({ one, two, newOne, newTwo }: MatrixProps) {
 }
 
 export default function (props: Props = {}) {
-  const { isRotatable, maxScale, minScale } = props
+  const { isRotatable, isOnlyPan, maxScale, minScale } = props
 
   const svgRef = ref<Element>()
   const groupRef = ref<SVGGElement>()
@@ -227,7 +228,7 @@ export default function (props: Props = {}) {
 
   const onTouchStart = (event: TouchEvent) => {
     if (event.touches.length === 1) onSingleTouch(event)
-    if (event.touches.length === 2) onDoubleTouch(event)
+    if (event.touches.length === 2 && !isOnlyPan) onDoubleTouch(event)
   }
 
   const onMouseDown = (event: MouseEvent) => {
@@ -272,14 +273,14 @@ export default function (props: Props = {}) {
   const addListeners = (el: SVGSVGElement) => {
     el.addEventListener('touchstart', onTouchStart, { passive: true })
     el.addEventListener('mousedown', onMouseDown, { passive: true })
-    el.addEventListener('wheel', onWheel, { passive: true })
+    !isOnlyPan && el.addEventListener('wheel', onWheel, { passive: true })
     window.addEventListener('resize', onResize, { passive: true })
   }
 
   const removeListeners = (el: SVGSVGElement) => {
     el.removeEventListener('touchstart', onTouchStart)
     el.removeEventListener('mousedown', onMouseDown)
-    el.removeEventListener('wheel', onWheel)
+    !isOnlyPan && el.removeEventListener('wheel', onWheel)
     window.removeEventListener('resize', onResize)
   }
 
