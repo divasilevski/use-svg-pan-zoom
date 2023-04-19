@@ -43,6 +43,18 @@ function setTouchMove(
   document.addEventListener('touchend', onTouchEnd)
 }
 
+function setMouseMove(onMouseMove: (event: MouseEvent) => void) {
+  const onMouseUp = (event: MouseEvent) => {
+    event.preventDefault()
+
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+  }
+
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+}
+
 function addGroupElement(parent: SVGSVGElement): SVGGElement {
   const group = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
@@ -78,6 +90,10 @@ function debounce(cb: Function, wait = 100) {
 
 function getTouchCoords(touch: TouchList[0]) {
   return { x: touch?.pageX || 0, y: touch?.pageY || 0 }
+}
+
+function getMouseCoords(event: MouseEvent) {
+  return { x: event.pageX || 0, y: event.pageY || 0 }
 }
 
 function getTranslateMatrix(point: Point, newPoint: Point) {
@@ -128,7 +144,6 @@ export default function ({ isRotatable }: Props = {}) {
   let isSingleTouch = true
 
   const updateHelpers = (svgElement: SVGSVGElement) => {
-    console.log(svgElement.getScreenCTM()?.inverse())
     helpers.svgPoint = svgElement.createSVGPoint()
     helpers.svgMatrix = svgElement.getScreenCTM()?.inverse()
   }
@@ -189,6 +204,24 @@ export default function ({ isRotatable }: Props = {}) {
     if (event.touches.length === 2) onDoubleTouch(event)
   }
 
+  const onMouseDown = (event: MouseEvent) => {
+    const initialMatrix = matrix.value
+    const touch = getMouseCoords(event)
+    const point = convertPoint(touch, helpers)
+
+    const onMouseMove = (event: MouseEvent) => {
+      event.preventDefault()
+
+      const newTouch = getMouseCoords(event)
+      const newPoint = convertPoint(newTouch, helpers)
+      const newMatrix = getTranslateMatrix(point, newPoint)
+
+      matrix.value = newMatrix.multiply(initialMatrix)
+    }
+
+    setMouseMove(onMouseMove)
+  }
+
   const onResize = debounce(() => {
     if (isSvgElement(svgRef.value)) {
       updateHelpers(svgRef.value)
@@ -196,13 +229,15 @@ export default function ({ isRotatable }: Props = {}) {
   })
 
   const addListeners = (el: SVGSVGElement) => {
-    window.addEventListener('resize', onResize, { passive: true })
     el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('mousedown', onMouseDown, { passive: true })
+    window.addEventListener('resize', onResize, { passive: true })
   }
 
   const removeListeners = (el: SVGSVGElement) => {
-    window.removeEventListener('resize', onResize)
     el.removeEventListener('touchstart', onTouchStart)
+    el.removeEventListener('mousedown', onMouseDown)
+    window.removeEventListener('resize', onResize)
   }
 
   watchEffect(() => {
