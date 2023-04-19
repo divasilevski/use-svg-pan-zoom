@@ -6,8 +6,6 @@ Project Description
 
 ### Todo
 
-- [ ] Unsibscribe for single touch  
-- [ ] Need recalculate helpers when svg change size  
 - [ ] Reset function  
 - [ ] Max and min for scale  
 - [ ] isOnlyPan flag  
@@ -20,5 +18,6 @@ Project Description
 
 ### Done ✓
 
+- [x] Need recalculate helpers when svg change size  
 - [x] Touch events  
 

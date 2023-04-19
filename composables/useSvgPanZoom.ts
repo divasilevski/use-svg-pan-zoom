@@ -66,7 +66,16 @@ function updateMatrix(el: SVGGElement, matrix: DOMMatrix) {
   el.setAttribute('transform', matrix.toString())
 }
 
-// -- Transform Maths --
+// -- Maths --
+function debounce(cb: Function, wait = 100) {
+  let timeout = 0
+  let callable = (...args: any) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => cb(...args), wait)
+  }
+  return callable
+}
+
 function getTouchCoords(touch: TouchList[0]) {
   return { x: touch?.pageX || 0, y: touch?.pageY || 0 }
 }
@@ -118,7 +127,8 @@ export default function ({ isRotatable }: Props = {}) {
   const helpers: Helpers = {}
   let isSingleTouch = true
 
-  const initHelpers = (svgElement: SVGSVGElement) => {
+  const updateHelpers = (svgElement: SVGSVGElement) => {
+    console.log(svgElement.getScreenCTM()?.inverse())
     helpers.svgPoint = svgElement.createSVGPoint()
     helpers.svgMatrix = svgElement.getScreenCTM()?.inverse()
   }
@@ -179,11 +189,19 @@ export default function ({ isRotatable }: Props = {}) {
     if (event.touches.length === 2) onDoubleTouch(event)
   }
 
+  const onResize = debounce(() => {
+    if (isSvgElement(svgRef.value)) {
+      updateHelpers(svgRef.value)
+    }
+  })
+
   const addListeners = (el: SVGSVGElement) => {
+    window.addEventListener('resize', onResize, { passive: true })
     el.addEventListener('touchstart', onTouchStart, { passive: true })
   }
 
   const removeListeners = (el: SVGSVGElement) => {
+    window.removeEventListener('resize', onResize)
     el.removeEventListener('touchstart', onTouchStart)
   }
 
@@ -212,7 +230,7 @@ export default function ({ isRotatable }: Props = {}) {
   onMounted(() => {
     if (isSvgElement(svgRef.value)) {
       groupRef.value = addGroupElement(svgRef.value)
-      initHelpers(svgRef.value)
+      updateHelpers(svgRef.value)
       addListeners(svgRef.value)
     } else {
       console.warn('Please connect svgRef correctly')
