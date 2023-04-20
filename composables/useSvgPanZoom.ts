@@ -199,8 +199,8 @@ export default function (props: Props = {}) {
     isSingleTouch = false
 
     const initialState = {
-      touchOne: getTouchCoords(event.touches[0]),
-      touchTwo: getTouchCoords(event.touches[1]),
+      touchOne: convertPoint(getTouchCoords(event.touches[0]), helpers),
+      touchTwo: convertPoint(getTouchCoords(event.touches[1]), helpers),
       matrix: matrix.value,
     }
 
@@ -210,8 +210,8 @@ export default function (props: Props = {}) {
       const matrixParams = {
         one: initialState.touchOne,
         two: initialState.touchTwo,
-        newOne: getTouchCoords(event.touches[0]),
-        newTwo: getTouchCoords(event.touches[1]),
+        newOne: convertPoint(getTouchCoords(event.touches[0]), helpers),
+        newTwo: convertPoint(getTouchCoords(event.touches[1]), helpers),
       }
 
       const localMatrix = isRotatable
