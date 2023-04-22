@@ -85,9 +85,9 @@ function updateMatrix(el: SVGGElement, matrix: DOMMatrix) {
 }
 
 function debounce(cb: Function, wait = 100) {
-  let timeout = 0
+  let timeout: NodeJS.Timeout
   let callable = (...args: any) => {
-    clearTimeout(timeout)
+    timeout && clearTimeout(timeout)
     timeout = setTimeout(() => cb(...args), wait)
   }
   return callable
