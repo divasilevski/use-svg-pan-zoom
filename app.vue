@@ -6,6 +6,8 @@
 </template>
 
 <script lang="ts" setup>
+useHead({ title: 'Composable useSvgPanZoom' })
+
 const { svgRef, reset, scale } = useSvgPanZoom()
 
 const onLayout = (element: Element) => {
