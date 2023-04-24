@@ -24,7 +24,7 @@ Copy [composable](https://github.com/divasilevski/use-svg-pan-zoom/blob/master/c
 </template>
 
 <script setup>
-const {  svgRef } = useSvgPanZoom()
+const { svgRef } = useSvgPanZoom()
 </script>
 ```
 
