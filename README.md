@@ -10,7 +10,7 @@ Pan/zoom composable for SVGs in vue 3. It adds events listeners for mouse, touch
 - Max/min scale
 
 ## Try It
-[https://use-svg-pan-zoom.vercel.app](https://use-svg-pan-zoom.vercel.app)
+<a href="https://use-svg-pan-zoom.vercel.app" target="_blank">https://use-svg-pan-zoom.vercel.app</a>
 
 ## How It Works
 Under the hood, a group element is added to the svg. Through the transform group property, we move and scale the image. We use transformation matrices for performance computing.
