@@ -1,42 +1,38 @@
-# Nuxt 3 Minimal Starter
+# Composable useSvgPanZoom
+Pan/zoom composable for SVGs in vue 3. It adds events listeners for mouse, touch and scroll.
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+## Features
+- Mouse pan
+- Wheel zoom
+- Touch pan
+- Double touch zoom and rotate
+- Reset positions
+- Max/min scale
 
-## Setup
+## How It Works
+Under the hood, a group element is added to the svg. Through the transform group property, we move and scale the image. We use transformation matrices for performance computing.
 
-Make sure to install the dependencies:
+## How To Use
+Copy [composable](https://github.com/divasilevski/use-svg-pan-zoom/blob/master/composables/useSvgPanZoom.ts) to your project.
 
-```bash
-# yarn
-yarn install
+```vue
+<template>
+  <svg ref="svgRef">...</svg>
+</template>
 
-# npm
-npm install
-
-# pnpm
-pnpm install
+<script setup>
+const {  svgRef } = useSvgPanZoom()
+</script>
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`
-
-```bash
-npm run dev
+With all features
+```vue
+<script setup>
+const { svgRef, reset, angle, scale } = useSvgPanZoom({
+  isRotatable: true,
+  isOnlyPan: false,
+  maxScale: 2,
+  minScale: 0.1,
+})
+</script>
 ```
-
-## Production
-
-Build the application for production:
-
-```bash
-npm run build
-```
-
-Locally preview production build:
-
-```bash
-npm run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
